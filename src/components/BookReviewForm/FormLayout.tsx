@@ -6,7 +6,6 @@ interface FormLayoutProps {
   currentStep: number;
   totalSteps: number;
   onPrevious?: () => void;
-  onNext?: () => void;
   isFirstStep: boolean;
   isLastStep: boolean;
 }
@@ -16,7 +15,6 @@ export default function FormLayout({
   currentStep,
   totalSteps,
   onPrevious,
-  onNext,
   isFirstStep,
   isLastStep,
 }: FormLayoutProps) {
@@ -34,15 +32,9 @@ export default function FormLayout({
             이전
           </Button>
         )}
-        {!isLastStep ? (
-          <Button type="button" onClick={onNext} variant="primary">
-            다음
-          </Button>
-        ) : (
-          <Button type="submit" variant="primary">
-            제출
-          </Button>
-        )}
+        <Button type="submit" variant="primary">
+          {isLastStep ? '제출' : '다음'}
+        </Button>
       </ButtonGroup>
     </Container>
   );

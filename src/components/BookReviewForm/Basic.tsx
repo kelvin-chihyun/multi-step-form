@@ -1,35 +1,19 @@
-import { useForm } from 'react-hook-form';
-import { useAtom } from 'jotai';
+import { UseFormReturn } from 'react-hook-form';
 import styled from '@emotion/styled';
-import { bookReviewAtom } from '@/store/formAtoms';
-import type { BasicInfo, ReadingStatus } from '@/types/bookReview';
+import type { BasicInfo } from '@/types/bookReview';
 
 interface BasicProps {
-  onNext: () => void;
+  form: UseFormReturn<BasicInfo>;
 }
 
-export default function Basic({ onNext }: BasicProps) {
-  const [formData, setFormData] = useAtom(bookReviewAtom);
-
+export default function Basic({ form }: BasicProps) {
   const {
     register,
-    handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<BasicInfo>({
-    defaultValues: formData.basic,
-    mode: 'onChange',
-  });
+  } = form;
 
   const readingStatus = watch('readingStatus');
-
-  const onSubmit = (data: BasicInfo) => {
-    setFormData((prev) => ({
-      ...prev,
-      basic: data,
-    }));
-    onNext();
-  };
 
   const validateDates = (value: string | undefined, fieldName: 'startDate' | 'endDate') => {
     const status = watch('readingStatus');
@@ -78,7 +62,7 @@ export default function Basic({ onNext }: BasicProps) {
   };
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
+    <Container>
       <Title>도서 기본 정보</Title>
 
       <FormGroup>
@@ -163,11 +147,11 @@ export default function Basic({ onNext }: BasicProps) {
           {errors.endDate && <ErrorMessage>{errors.endDate.message}</ErrorMessage>}
         </FormGroup>
       </DateGroup>
-    </Form>
+    </Container>
   );
 }
 
-const Form = styled.form`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
