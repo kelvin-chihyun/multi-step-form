@@ -1,55 +1,28 @@
-/** @jsxImportSource @emotion/react */
-import { css, useTheme } from '@emotion/react'
-import { Theme } from '@/styles/theme'
-import { GetServerSideProps, NextApiRequest, NextApiResponse } from 'next'
+import { useAtom } from 'jotai';
+import { currentStepAtom } from '@/store/formAtoms';
+import FormLayout from '@/components/BookReviewForm/FormLayout';
 
-const containerStyles = (theme: Theme) => css`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: ${theme.colors.background.main};
-  font-family: ${theme.typography.fontFamily};
-`
+export default function Home() {
+  const [currentStep, setCurrentStep] = useAtom(currentStepAtom);
 
-const titleStyles = (theme: Theme) => css`
-  font-size: ${theme.typography.fontSize.xxxl};
-  font-weight: ${theme.typography.fontWeight.bold};
-  color: ${theme.colors.text.primary};
-  margin: 0;
-  text-align: center;
-`
-
-interface HomeProps {
-  name: string;
-}
-
-export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
-  type Data = { name: string };
-
-  const data = await import('../api/hello').then(mod => {
-    const handler = mod.default;
-    return new Promise<Data>((resolve) => {
-      handler(
-        { method: 'GET' } as NextApiRequest,
-        { json: resolve, status: () => ({ json: resolve }) } as unknown as NextApiResponse
-      );
-    });
-  });
-  
-  return {
-    props: {
-      name: data.name,
-    },
+  const handleNext = () => {
+    setCurrentStep((prev) => Math.min(prev + 1, 5));
   };
-};
 
-export default function Home({ name }: HomeProps) {
-  const theme = useTheme() as Theme;
-  
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
   return (
-    <div css={containerStyles(theme)}>
-      <h1 css={titleStyles(theme)}>Hello, {name}</h1>
-    </div>
+    <FormLayout
+      currentStep={currentStep}
+      totalSteps={5}
+      onPrevious={handlePrevious}
+      onNext={handleNext}
+      isFirstStep={currentStep === 1}
+      isLastStep={currentStep === 5}
+    >
+      <div>Multi-Step Book Review Form</div>
+    </FormLayout>
   );
 }
