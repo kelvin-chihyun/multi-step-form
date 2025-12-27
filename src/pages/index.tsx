@@ -1,8 +1,8 @@
 import { useAtom } from 'jotai';
 import { useForm } from 'react-hook-form';
 import { currentStepAtom, bookReviewAtom } from '@/store/formAtoms';
-import { FormLayout, Basic, Rating, Review } from '@/components/BookReviewForm';
-import type { BasicInfo, RatingInfo, ReviewInfo } from '@/types/bookReview';
+import { FormLayout, Basic, Rating, Review, Quotes } from '@/components/BookReviewForm';
+import type { BasicInfo, RatingInfo, ReviewInfo, QuotesInfo } from '@/types/bookReview';
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useAtom(currentStepAtom);
@@ -20,6 +20,11 @@ export default function Home() {
 
   const reviewForm = useForm<ReviewInfo>({
     defaultValues: formData.review,
+    mode: 'onChange',
+  });
+
+  const quotesForm = useForm<QuotesInfo>({
+    defaultValues: formData.quotes,
     mode: 'onChange',
   });
 
@@ -49,6 +54,14 @@ export default function Home() {
       review: data,
     }));
     setCurrentStep(4);
+  };
+
+  const handleQuotesSubmit = (data: QuotesInfo) => {
+    setFormData((prev) => ({
+      ...prev,
+      quotes: data,
+    }));
+    setCurrentStep(5);
   };
 
   const renderStep = () => {
@@ -96,7 +109,19 @@ export default function Home() {
           </form>
         );
       case 4:
-        return <div>Step 4 - Quotes (Coming soon)</div>;
+        return (
+          <form onSubmit={quotesForm.handleSubmit(handleQuotesSubmit)}>
+            <FormLayout
+              currentStep={currentStep}
+              totalSteps={5}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            >
+              <Quotes form={quotesForm} totalPages={formData.basic.totalPages} />
+            </FormLayout>
+          </form>
+        );
       case 5:
         return <div>Step 5 - Visibility (Coming soon)</div>;
       default:
