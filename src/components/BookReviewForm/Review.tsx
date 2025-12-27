@@ -21,20 +21,23 @@ export default function Review({ form, currentRating }: ReviewProps) {
   const isContentRequired = currentRating === 1 || currentRating === 5;
   const minContentLength = isContentRequired ? 100 : 0;
 
+  // 작성자 필수 조건: 별점 1점/5점이거나, 독후감을 작성한 경우
+  const isReviewerRequired = isContentRequired || (content && content.trim().length > 0);
+
   return (
     <Container>
       <Title>독후감 작성</Title>
 
       <FormGroup>
         <Label htmlFor="reviewer">
-          작성자 *
+          작성자 {isReviewerRequired && '*'}
         </Label>
         <Input
           id="reviewer"
           type="text"
           placeholder="작성자 이름을 입력해주세요"
           {...register('reviewer', {
-            required: '작성자 이름을 입력해주세요',
+            required: isReviewerRequired ? '작성자 이름을 입력해주세요' : false,
             minLength: {
               value: 2,
               message: '작성자 이름은 최소 2자 이상이어야 합니다',
@@ -84,10 +87,11 @@ export default function Review({ form, currentRating }: ReviewProps) {
 
       <GuideBox>
         <GuideTitle>독후감 작성 가이드</GuideTitle>
+        <GuideItem>• 별점 1점 또는 5점: 독후감과 작성자 필수, 독후감은 최소 100자 이상</GuideItem>
+        <GuideItem>• 별점 2~4점: 독후감을 작성하지 않아도 되며, 작성하지 않으면 작성자도 생략 가능</GuideItem>
         <GuideItem>• 책의 전체적인 내용과 느낀 점을 작성해주세요</GuideItem>
         <GuideItem>• 인상 깊었던 부분이나 기억에 남는 장면을 공유해주세요</GuideItem>
         <GuideItem>• 책을 통해 배운 점이나 생각의 변화가 있다면 적어주세요</GuideItem>
-        <GuideItem>• 다른 독자들에게 도움이 될 만한 정보를 포함해주세요</GuideItem>
       </GuideBox>
     </Container>
   );
