@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useAtom } from 'jotai';
 import { useForm } from 'react-hook-form';
+import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { currentStepAtom, bookReviewAtom } from '@/store/formAtoms';
 import { FormLayout, Basic, Rating, Review, Quotes, Visibility } from '@/components/BookReviewForm';
 import type { BasicInfo, RatingInfo, ReviewInfo, QuotesInfo, VisibilityInfo } from '@/types/bookReview';
@@ -13,7 +15,43 @@ export default function BookReviewStep() {
   const [formData, setFormData] = useAtom(bookReviewAtom);
 
   // URL 파라미터에서 step을 숫자로 변환
-  const currentStep = typeof step === 'string' ? parseInt(step, 10) : 1;
+  const stepParam = Array.isArray(step) ? step[0] : step;
+  const currentStep = stepParam ? parseInt(stepParam, 10) : 1;
+
+  // 각 단계별 필수 데이터 검증
+  const validateStepData = useCallback((step: number): number | null => {
+    switch (step) {
+      case 1:
+        return null; // 첫 단계는 검증 불필요
+      case 2:
+        // Step 2: 기본 정보가 입력되어 있어야 함
+        if (!formData.basic.bookTitle || !formData.basic.author || !formData.basic.publisher) {
+          return 1; // Step 1로 리다이렉트
+        }
+        return null;
+      case 3:
+        // Step 3: 별점이 선택되어 있어야 함
+        if (formData.rating.rating === 0) {
+          return 2; // Step 2로 리다이렉트
+        }
+        return null;
+      case 4:
+        // Step 4: 독후감 검증 (별점 1점/5점이면 필수)
+        const isContentRequired = formData.rating.rating === 1 || formData.rating.rating === 5;
+        if (isContentRequired && !formData.review.content) {
+          return 3; // Step 3으로 리다이렉트
+        }
+        return null;
+      case 5:
+        // Step 5: 인용구가 입력되어 있어야 함
+        if (!formData.quotes.quotes[0]?.text) {
+          return 4; // Step 4로 리다이렉트
+        }
+        return null;
+      default:
+        return 1;
+    }
+  }, [formData]);
 
   // step 유효성 검증 및 currentStepAtom 동기화
   useEffect(() => {
@@ -25,9 +63,18 @@ export default function BookReviewStep() {
       return;
     }
 
+    // 각 단계별 필수 데이터 검증
+    const redirectStep = validateStepData(currentStep);
+    if (redirectStep !== null) {
+      router.replace(`/book-review/${redirectStep}`);
+      return;
+    }
+
     // currentStepAtom과 URL 동기화
     setCurrentStep(currentStep);
-  }, [router.isReady, currentStep, setCurrentStep, router]);
+    // router 객체는 Next.js에서 안정적인 참조를 유지하므로 의존성 배열에서 제외
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, currentStep, setCurrentStep, validateStepData]);
 
   const basicForm = useForm<BasicInfo>({
     defaultValues: formData.basic,
@@ -183,10 +230,45 @@ export default function BookReviewStep() {
     }
   };
 
-  // 라우터가 준비되지 않았거나 유효하지 않은 step이면 렌더링하지 않음
+  // 라우터가 준비되지 않았거나 유효하지 않은 step이면 로딩 표시
   if (!router.isReady || isNaN(currentStep) || currentStep < 1 || currentStep > 5) {
-    return null;
+    return (
+      <LoadingContainer>
+        <Spinner />
+        <LoadingText>페이지를 불러오는 중...</LoadingText>
+      </LoadingContainer>
+    );
   }
 
   return <>{renderStep()}</>;
 }
+
+// 로딩 스피너 애니메이션
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+`;
+
+const Spinner = styled.div`
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: ${spin} 1s linear infinite;
+`;
+
+const LoadingText = styled.p`
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+`;
