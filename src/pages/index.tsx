@@ -1,10 +1,8 @@
 import { useAtom } from 'jotai';
 import { useForm } from 'react-hook-form';
 import { currentStepAtom, bookReviewAtom } from '@/store/formAtoms';
-import FormLayout from '@/components/BookReviewForm/FormLayout';
-import Basic from '@/components/BookReviewForm/Basic';
-import Rating from '@/components/BookReviewForm/Rating';
-import type { BasicInfo, RatingInfo } from '@/types/bookReview';
+import { FormLayout, Basic, Rating, Review } from '@/components/BookReviewForm';
+import type { BasicInfo, RatingInfo, ReviewInfo } from '@/types/bookReview';
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useAtom(currentStepAtom);
@@ -17,6 +15,11 @@ export default function Home() {
 
   const ratingForm = useForm<RatingInfo>({
     defaultValues: formData.rating,
+    mode: 'onChange',
+  });
+
+  const reviewForm = useForm<ReviewInfo>({
+    defaultValues: formData.review,
     mode: 'onChange',
   });
 
@@ -38,6 +41,14 @@ export default function Home() {
       rating: data,
     }));
     setCurrentStep(3);
+  };
+
+  const handleReviewSubmit = (data: ReviewInfo) => {
+    setFormData((prev) => ({
+      ...prev,
+      review: data,
+    }));
+    setCurrentStep(4);
   };
 
   const renderStep = () => {
@@ -71,7 +82,19 @@ export default function Home() {
           </form>
         );
       case 3:
-        return <div>Step 3 - Review (Coming soon)</div>;
+        return (
+          <form onSubmit={reviewForm.handleSubmit(handleReviewSubmit)}>
+            <FormLayout
+              currentStep={currentStep}
+              totalSteps={5}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={false}
+            >
+              <Review form={reviewForm} currentRating={formData.rating.rating} />
+            </FormLayout>
+          </form>
+        );
       case 4:
         return <div>Step 4 - Quotes (Coming soon)</div>;
       case 5:
