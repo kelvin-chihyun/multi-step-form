@@ -1,8 +1,8 @@
 import { useAtom } from 'jotai';
 import { useForm } from 'react-hook-form';
 import { currentStepAtom, bookReviewAtom } from '@/store/formAtoms';
-import { FormLayout, Basic, Rating, Review, Quotes } from '@/components/BookReviewForm';
-import type { BasicInfo, RatingInfo, ReviewInfo, QuotesInfo } from '@/types/bookReview';
+import { FormLayout, Basic, Rating, Review, Quotes, Visibility } from '@/components/BookReviewForm';
+import type { BasicInfo, RatingInfo, ReviewInfo, QuotesInfo, VisibilityInfo } from '@/types/bookReview';
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useAtom(currentStepAtom);
@@ -25,6 +25,11 @@ export default function Home() {
 
   const quotesForm = useForm<QuotesInfo>({
     defaultValues: formData.quotes,
+    mode: 'onChange',
+  });
+
+  const visibilityForm = useForm<VisibilityInfo>({
+    defaultValues: formData.visibilityInfo,
     mode: 'onChange',
   });
 
@@ -62,6 +67,21 @@ export default function Home() {
       quotes: data,
     }));
     setCurrentStep(5);
+  };
+
+  const handleVisibilitySubmit = (data: VisibilityInfo) => {
+    const finalData = {
+      ...formData,
+      visibilityInfo: data,
+    };
+    setFormData(finalData);
+
+    // 최종 제출 처리
+    console.log('📚 독서 기록 제출:', finalData);
+    alert('독서 기록이 성공적으로 제출되었습니다!');
+
+    // 폼 초기화 및 첫 단계로 이동 (선택사항)
+    // setCurrentStep(1);
   };
 
   const renderStep = () => {
@@ -123,7 +143,19 @@ export default function Home() {
           </form>
         );
       case 5:
-        return <div>Step 5 - Visibility (Coming soon)</div>;
+        return (
+          <form onSubmit={visibilityForm.handleSubmit(handleVisibilitySubmit)}>
+            <FormLayout
+              currentStep={currentStep}
+              totalSteps={5}
+              onPrevious={handlePrevious}
+              isFirstStep={false}
+              isLastStep={true}
+            >
+              <Visibility form={visibilityForm} />
+            </FormLayout>
+          </form>
+        );
       default:
         return (
           <form onSubmit={basicForm.handleSubmit(handleBasicSubmit)}>
