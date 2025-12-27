@@ -9,6 +9,7 @@ const initialFormData: BookReviewFormData = {
     bookTitle: '',
     author: '',
     publisher: '',
+    totalPages: 0,
     readingStatus: '읽고싶은책',
     startDate: undefined,
     endDate: undefined,

@@ -14,6 +14,10 @@ export default function Basic({ form }: BasicProps) {
   } = form;
 
   const readingStatus = watch('readingStatus');
+  const totalPages = watch('totalPages');
+
+  // totalPages가 0이면 "알 수 없음" 상태로 간주
+  const isTotalPagesUnknown = totalPages === 0;
 
   const validateDates = (value: string | undefined, fieldName: 'startDate' | 'endDate') => {
     const status = watch('readingStatus');
@@ -99,6 +103,45 @@ export default function Basic({ form }: BasicProps) {
           hasError={!!errors.publisher}
         />
         {errors.publisher && <ErrorMessage>{errors.publisher.message}</ErrorMessage>}
+      </FormGroup>
+
+      <FormGroup>
+        <Label htmlFor="totalPages">전체 페이지 수 *</Label>
+        <CheckboxLabel>
+          <Checkbox
+            type="checkbox"
+            checked={isTotalPagesUnknown}
+            onChange={(e) => {
+              const { setValue } = form;
+              if (e.target.checked) {
+                setValue('totalPages', 0, { shouldValidate: true });
+              } else {
+                setValue('totalPages', 1, { shouldValidate: true });
+              }
+            }}
+          />
+          알 수 없음
+        </CheckboxLabel>
+        <Input
+          id="totalPages"
+          type="number"
+          placeholder={isTotalPagesUnknown ? '알 수 없음' : '전체 페이지 수를 입력하세요'}
+          {...register('totalPages', {
+            valueAsNumber: true,
+            validate: (value) => {
+              // "알 수 없음" 상태면 검증 skip
+              if (value === 0) return true;
+              // "알 수 없음"이 아닌데 값이 없거나 유효하지 않으면 에러
+              if (!value || value < 1) {
+                return '전체 페이지 수를 입력하거나 "알 수 없음"을 선택해주세요';
+              }
+              return true;
+            },
+          })}
+          hasError={!!errors.totalPages}
+          disabled={isTotalPagesUnknown}
+        />
+        {errors.totalPages && <ErrorMessage>{errors.totalPages.message}</ErrorMessage>}
       </FormGroup>
 
       <FormGroup>
@@ -221,4 +264,20 @@ const DateGroup = styled.div`
 const ErrorMessage = styled.span`
   font-size: 13px;
   color: #dc3545;
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  margin-bottom: 4px;
+`;
+
+const Checkbox = styled.input`
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 `;

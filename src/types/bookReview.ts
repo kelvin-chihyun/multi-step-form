@@ -15,6 +15,7 @@ export interface BasicInfo {
   bookTitle: string;
   author: string;
   publisher: string;
+  totalPages: number;
   readingStatus: ReadingStatus;
   startDate?: string; // YYYY-MM-DD
   endDate?: string; // YYYY-MM-DD
