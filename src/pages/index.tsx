@@ -1,55 +1,13 @@
-/** @jsxImportSource @emotion/react */
-import { css, useTheme } from '@emotion/react'
-import { Theme } from '@/styles/theme'
-import { GetServerSideProps, NextApiRequest, NextApiResponse } from 'next'
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
-const containerStyles = (theme: Theme) => css`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: ${theme.colors.background.main};
-  font-family: ${theme.typography.fontFamily};
-`
+export default function Home() {
+  const router = useRouter();
 
-const titleStyles = (theme: Theme) => css`
-  font-size: ${theme.typography.fontSize.xxxl};
-  font-weight: ${theme.typography.fontWeight.bold};
-  color: ${theme.colors.text.primary};
-  margin: 0;
-  text-align: center;
-`
+  useEffect(() => {
+    // 루트 경로 접근 시 첫 번째 단계로 리다이렉트
+    router.replace('/book-review/1');
+  }, [router]);
 
-interface HomeProps {
-  name: string;
-}
-
-export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
-  type Data = { name: string };
-
-  const data = await import('../api/hello').then(mod => {
-    const handler = mod.default;
-    return new Promise<Data>((resolve) => {
-      handler(
-        { method: 'GET' } as NextApiRequest,
-        { json: resolve, status: () => ({ json: resolve }) } as unknown as NextApiResponse
-      );
-    });
-  });
-  
-  return {
-    props: {
-      name: data.name,
-    },
-  };
-};
-
-export default function Home({ name }: HomeProps) {
-  const theme = useTheme() as Theme;
-  
-  return (
-    <div css={containerStyles(theme)}>
-      <h1 css={titleStyles(theme)}>Hello, {name}</h1>
-    </div>
-  );
+  return null;
 }
